@@ -9,7 +9,7 @@ from django.urls import reverse
 import shutil
 import tempfile
 
-from posts.models import Group, Post
+from posts.models import Group, Follow, Post
 
 
 User = get_user_model()
@@ -23,13 +23,13 @@ class TaskPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        small_gif = (            
-             b'\x47\x49\x46\x38\x39\x61\x02\x00'
-             b'\x01\x00\x80\x00\x00\x00\x00\x00'
-             b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-             b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-             b'\x0A\x00\x3B'
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
         )
         cls.uploaded = SimpleUploadedFile(
             name='small.gif',
@@ -92,7 +92,6 @@ class TaskPagesTests(TestCase):
         self.user_author = User.objects.get(username='auth')
         self.post_author = Client()
         self.post_author.force_login(self.user_author)
-  
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответсвующий шаблон"""
@@ -121,7 +120,7 @@ class TaskPagesTests(TestCase):
             first_object.group.description,
             self.post.group.description
         )
-    
+
     def test_index_page_show_correct_context(self):
         """
         Шаблон index сформирован с правильным контекстом.
@@ -237,7 +236,6 @@ class TaskPagesTests(TestCase):
         context = response.context['page_obj'].object_list
         self.assertNotIn(self.post, context)
 
-
     def test_cache(self):
         """Тестируем работу кеша"""
         test_post = Post.objects.create(
@@ -258,6 +256,66 @@ class TaskPagesTests(TestCase):
         )
         self.assertNotEqual(
             post_content, content_after_cache_clear
+        )
+
+
+class FollowTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user_user = User.objects.create_user(username='user')
+        cls.user_author = User.objects.create_user(username='author')
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+
+    def setUp(self):
+        self.user = Client()
+        self.author = Client()
+        self.user.force_login(self.user_user)
+        self.author.force_login(self.user_author)
+
+    def test_authenticated_user_can_follow(self):
+        """Залогиненный пользователь может подписаться/отписаться от авторов,
+        при этом нельзя подписаться/отписаться, если он уже подписан/отписан"""
+        follow_count = Follow.objects.count()
+        self.user.get(
+            reverse(('posts:profile_follow'),
+                    args={self.user_author.username}))
+        self.user.get(
+            reverse(('posts:profile_follow'),
+                    args={self.user_author.username}))
+        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        self.user.get(
+            reverse(('posts:profile_unfollow'),
+                    args={self.user_author.username}))
+        self.user.get(
+            reverse(('posts:profile_unfollow'),
+                    args={self.user_author.username}))
+        self.assertEqual(Follow.objects.count(), follow_count)
+
+    def test_authenticated_user_canе_follow_himself(self):
+        """Залогиненный пользователь не может подписаться на самого себя"""
+        follow_count = Follow.objects.count()
+        self.user.get(
+            reverse(('posts:profile_follow'),
+                    args={self.user_user.username}))
+        self.assertEqual(Follow.objects.count(), follow_count)
+
+    def test_profile_follow(self):
+        """Проверяем, что пост возникает на странице подписки."""
+        Post.objects.create(
+            text='Тестовый пост подписки',
+            author=self.user_author
+        )
+        Follow.objects.create(user=self.user_user, author=self.user_author)
+        self.user.get(reverse('posts:profile_follow',
+                              args={self.user_user.username}))
+        response = self.user.get(reverse('posts:follow_index'))
+        self.assertEqual(
+            response.context['page_obj'].object_list[0],
+            Post.objects.latest('id')
         )
 
 

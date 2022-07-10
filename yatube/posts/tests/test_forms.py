@@ -52,7 +52,9 @@ class PostFormTests(TestCase):
         self.assertEqual(
             first_object.author.username, self.post.author.username)
         self.assertEqual(first_object.group.id, form_data['group'])
-        self.assertEqual(first_object.image.name, f'posts/{form_data['image']}.name')
+        self.assertEqual(
+            first_object.image.name, f"posts/{form_data['image'].name}"
+        )
 
     def test_create_post(self):
         """Валидная форма создает запись в Post."""

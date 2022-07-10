@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'users.apps.UsersConfig',  # Зарегистрировали приложение users
     'core.apps.CoreConfig',  # Зарегистрировали приложение core
     'about.apps.AboutConfig',  # Зарегистрировали приложение about
-    'sorl.thumbnail', # Зарегистрировали приложение для работы с картинками
+    'sorl.thumbnail',  # Зарегистрировали приложение для работы с картинками
 ]
 
 MIDDLEWARE = [

@@ -39,12 +39,12 @@ def profile(request, username):
         ).exists()
     else:
         following = False
-    profile = user
     context = {
         'author': user,
         'amount': amount,
         'page_obj': page_paginator(user.posts.all(), request),
-        'following': following
+        'following': following,
+        'profile': user
     }
     return render(request, 'posts/profile.html', context)
 
@@ -73,7 +73,7 @@ def post_create(request):
     form = PostForm(
         request.POST or None,
         files=request.FILES or None
-        )
+    )
     if request.method == 'POST' and form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -103,6 +103,7 @@ def post_edit(request, post_id):
         request, 'posts/create_post.html', {'is_edit': True, 'form': form}
     )
 
+
 @login_required
 def add_comment(request, post_id):
     post = get_object_or_404(Post.objects.select_related(
@@ -117,12 +118,14 @@ def add_comment(request, post_id):
         comment.save()
     return redirect('posts:post_detail', post_id=post_id)
 
+
 @login_required
-def follow_index (request):
+def follow_index(request):
     user = request.user
     post = Post.objects.filter(author__following__user=user)
     context = {'page_obj': page_paginator(post, request)}
     return render(request, 'posts/follow.html', context)
+
 
 @login_required
 def profile_follow(request, username):
@@ -132,15 +135,10 @@ def profile_follow(request, username):
         Follow.objects.get_or_create(user=request.user, author=author)
     return redirect('posts:profile', username=username)
 
+
 @login_required
 def profile_unfollow(request, username):
     """Функция для отписки от автора"""
     author = get_object_or_404(User, username=username)
     Follow.objects.filter(user=request.user, author=author).delete()
     return redirect('posts:profile', username=username)
-"""    
-def profile_unfollow(request, username):
-    Follow(user=request.user,
-           author=User.objects.get(username=username)).delete()
-    return redirect('posts:profile', username=username)
-    """

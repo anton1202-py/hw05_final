@@ -1,4 +1,3 @@
-from multiprocessing import AuthenticationError
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -62,6 +61,7 @@ class Post(models.Model):
     def __str__(self):
         return self.text[:15]
 
+
 class Comment(models.Model):
     post = models.ForeignKey(
         Post,
@@ -83,6 +83,7 @@ class Comment(models.Model):
         auto_now_add=True
     )
 
+
 class Follow(models.Model):
     user = models.ForeignKey(
         User,
@@ -95,4 +96,3 @@ class Follow(models.Model):
         verbose_name='Автор поста',
         related_name='following'
     )
-    

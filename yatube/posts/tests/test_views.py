@@ -80,7 +80,6 @@ class TaskPagesTests(TestCase):
         ]
         cls.pages_for_post = [cls.INDEX, cls.GROUP, cls.PROFILE]
 
-
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
@@ -241,7 +240,8 @@ class TaskPagesTests(TestCase):
         test_post.delete()
         delete_post_but_in_cache = self.post_author.get(var_test_cache).content
         cache.clear()
-        content_after_cache_clear = self.post_author.get(var_test_cache).content
+        content_after_cache_clear = self.post_author.get(
+            var_test_cache).content
         self.assertEqual(
             post_content, delete_post_but_in_cache
         )
@@ -257,13 +257,12 @@ class FollowTest(TestCase):
         cls.user_user = User.objects.create_user(username='user')
         cls.user_author = User.objects.create_user(username='author')
         cls.FOLLOW_INDEX = reverse('posts:follow_index')
-        cls.PROFILE_FOLLOW_AUTHOR = reverse(('posts:profile_follow'), 
+        cls.PROFILE_FOLLOW_AUTHOR = reverse('posts:profile_follow',
             args={cls.user_author.username})
-        cls.PROFILE_UNFOLLOW_AUTHOR = reverse(('posts:profile_unfollow'), 
+        cls.PROFILE_UNFOLLOW_AUTHOR = reverse('posts:profile_unfollow',
             args={cls.user_author.username})
-        cls.PROFILE_FOLLOW_USER = reverse(('posts:profile_follow'),
+        cls.PROFILE_FOLLOW_USER = reverse('posts:profile_follow',
             args={cls.user_user.username})
-
 
     @classmethod
     def tearDownClass(cls):
@@ -282,7 +281,7 @@ class FollowTest(TestCase):
         self.user.get(self.PROFILE_FOLLOW_AUTHOR)
         self.user.get(self.PROFILE_FOLLOW_AUTHOR)
         self.assertEqual(Follow.objects.count(), follow_count + 1)
-       
+
     def test_authenticated_user_can_unfollow(self):
         """Залогиненный пользователь может отписаться от авторов,
         при этом нельзя отписаться, если он уже отписан"""

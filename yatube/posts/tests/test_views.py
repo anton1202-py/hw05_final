@@ -257,12 +257,18 @@ class FollowTest(TestCase):
         cls.user_user = User.objects.create_user(username='user')
         cls.user_author = User.objects.create_user(username='author')
         cls.FOLLOW_INDEX = reverse('posts:follow_index')
-        cls.PROFILE_FOLLOW_AUTHOR = reverse('posts:profile_follow',
-            args={cls.user_author.username})
-        cls.PROFILE_UNFOLLOW_AUTHOR = reverse('posts:profile_unfollow',
-            args={cls.user_author.username})
-        cls.PROFILE_FOLLOW_USER = reverse('posts:profile_follow',
-            args={cls.user_user.username})
+        cls.PROFILE_FOLLOW_AUTHOR = reverse(
+            'posts:profile_follow',
+            args={cls.user_author.username}
+        )
+        cls.PROFILE_UNFOLLOW_AUTHOR = reverse(
+            'posts:profile_unfollow',
+            args={cls.user_author.username}
+        )
+        cls.PROFILE_FOLLOW_USER = reverse(
+            'posts:profile_follow',
+            args={cls.user_user.username}
+        )
 
     @classmethod
     def tearDownClass(cls):

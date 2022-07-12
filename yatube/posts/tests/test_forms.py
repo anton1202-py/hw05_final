@@ -85,7 +85,6 @@ class PostFormTests(TestCase):
         self.assertRedirects(response, reverse((
             'posts:profile'), args={self.user.username}))
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        # Проверяем, что все поля создаются правильно
         first_object = response.context['page_obj'].object_list[0]
         self.body_test(first_object, form_data)
 
@@ -131,7 +130,6 @@ class PostFormTests(TestCase):
         self.assertRedirects(response, reverse((
             'posts:post_detail'), args={self.post.id}))
         self.assertEqual(Post.objects.count(), posts_count)
-        # Проверим, что все поля редактируются правильно
         first_object = response.context['post']
         self.body_test(first_object, form_data)
 
@@ -150,23 +148,26 @@ class PostFormTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count)
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
+    def comment_body_test(self, first_object, form_data):
+        """Проверка полей комментария."""
+        self.assertEqual(first_object.text, form_data['text'])
+
     def test_comment_show_up_with_authorized_user(self):
         """Комментировать посты может только авторизованный пользователь.
         После успешной отправки, комментарий появляется на странице поста."""
-        # Подсчитаем количество комметариев
         comments_count = Comment.objects.count()
         form_data = {
             'text': 'Новый комментарий для поста',
+            'author': self.authorized_client
         }
-        # Отправляем POST-запрос
         response = self.authorized_client.post(
             reverse((
                 'posts:add_comment'), kwargs={'post_id': f'{self.post.id}'}),
             data=form_data,
             follow=True
         )
-        # Проверяем, сработал ли редирект
         self.assertRedirects(response, reverse((
             'posts:post_detail'), args=[f'{self.post.id}']))
-        # Проверяем, увеличилось ли число комментариев
         self.assertEqual(Comment.objects.count(), comments_count + 1)
+        first_object = Comment.objects.latest('id')
+        self.comment_body_test(first_object, form_data)

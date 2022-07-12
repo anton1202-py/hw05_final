@@ -80,6 +80,7 @@ class TaskPagesTests(TestCase):
         ]
         cls.pages_for_post = [cls.INDEX, cls.GROUP, cls.PROFILE]
 
+
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
@@ -173,13 +174,9 @@ class TaskPagesTests(TestCase):
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
         }
-        # Проверяем, что типы полей формы в словаре
-        # context соответствуют ожиданиям
         for value, expected in form_fields.items():
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
-                # Проверяет, что поле формы является экземпляром
-                # указанного класса
                 self.assertIsInstance(form_field, expected)
 
     def test_post_create_page_show_correct_context(self):
@@ -192,13 +189,9 @@ class TaskPagesTests(TestCase):
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
         }
-        # Проверяем, что типы полей формы в словаре
-        # context соответствуют ожиданиям
         for value, expected in form_fields.items():
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
-                # Проверяет, что поле формы является экземпляром
-                # указанного класса
                 self.assertIsInstance(form_field, expected)
 
     def test_check_post_on_create(self):
@@ -243,14 +236,12 @@ class TaskPagesTests(TestCase):
             group=self.group,
             author=self.user,
         )
-        post_content = self.post_author.get(
-            reverse('posts:index')).content
+        var_test_cache = reverse('posts:index')
+        post_content = self.post_author.get(var_test_cache).content
         test_post.delete()
-        delete_post_but_in_cache = self.post_author.get(
-            reverse('posts:index')).content
+        delete_post_but_in_cache = self.post_author.get(var_test_cache).content
         cache.clear()
-        content_after_cache_clear = self.post_author.get(
-            reverse('posts:index')).content
+        content_after_cache_clear = self.post_author.get(var_test_cache).content
         self.assertEqual(
             post_content, delete_post_but_in_cache
         )
@@ -265,6 +256,14 @@ class FollowTest(TestCase):
         super().setUpClass()
         cls.user_user = User.objects.create_user(username='user')
         cls.user_author = User.objects.create_user(username='author')
+        cls.FOLLOW_INDEX = reverse('posts:follow_index')
+        cls.PROFILE_FOLLOW_AUTHOR = reverse(('posts:profile_follow'), 
+            args={cls.user_author.username})
+        cls.PROFILE_UNFOLLOW_AUTHOR = reverse(('posts:profile_unfollow'), 
+            args={cls.user_author.username})
+        cls.PROFILE_FOLLOW_USER = reverse(('posts:profile_follow'),
+            args={cls.user_user.username})
+
 
     @classmethod
     def tearDownClass(cls):
@@ -277,30 +276,26 @@ class FollowTest(TestCase):
         self.author.force_login(self.user_author)
 
     def test_authenticated_user_can_follow(self):
-        """Залогиненный пользователь может подписаться/отписаться от авторов,
-        при этом нельзя подписаться/отписаться, если он уже подписан/отписан"""
+        """Залогиненный пользователь может подписаться на авторов,
+        при этом нельзя подписаться, если он уже подписан"""
         follow_count = Follow.objects.count()
-        self.user.get(
-            reverse(('posts:profile_follow'),
-                    args={self.user_author.username}))
-        self.user.get(
-            reverse(('posts:profile_follow'),
-                    args={self.user_author.username}))
+        self.user.get(self.PROFILE_FOLLOW_AUTHOR)
+        self.user.get(self.PROFILE_FOLLOW_AUTHOR)
         self.assertEqual(Follow.objects.count(), follow_count + 1)
-        self.user.get(
-            reverse(('posts:profile_unfollow'),
-                    args={self.user_author.username}))
-        self.user.get(
-            reverse(('posts:profile_unfollow'),
-                    args={self.user_author.username}))
+       
+    def test_authenticated_user_can_unfollow(self):
+        """Залогиненный пользователь может отписаться от авторов,
+        при этом нельзя отписаться, если он уже отписан"""
+        follow_count = Follow.objects.count()
+        self.user.get(self.PROFILE_FOLLOW_AUTHOR)
+        self.user.get(self.PROFILE_UNFOLLOW_AUTHOR)
+        self.user.get(self.PROFILE_UNFOLLOW_AUTHOR)
         self.assertEqual(Follow.objects.count(), follow_count)
 
     def test_authenticated_user_canе_follow_himself(self):
         """Залогиненный пользователь не может подписаться на самого себя"""
         follow_count = Follow.objects.count()
-        self.user.get(
-            reverse(('posts:profile_follow'),
-                    args={self.user_user.username}))
+        self.user.get(self.PROFILE_FOLLOW_USER)
         self.assertEqual(Follow.objects.count(), follow_count)
 
     def test_profile_follow(self):
@@ -310,9 +305,8 @@ class FollowTest(TestCase):
             author=self.user_author
         )
         Follow.objects.create(user=self.user_user, author=self.user_author)
-        self.user.get(reverse('posts:profile_follow',
-                              args={self.user_user.username}))
-        response = self.user.get(reverse('posts:follow_index'))
+        self.user.get(self.PROFILE_FOLLOW_USER)
+        response = self.user.get(self.FOLLOW_INDEX)
         self.assertEqual(
             response.context['page_obj'].object_list[0],
             Post.objects.latest('id')
@@ -345,7 +339,6 @@ class PaginatorViewsTest(TestCase):
 
     def test_first_page_contains_ten_record(self):
         response = self.post_author.get(reverse('posts:index'))
-        # Проверка количества постов на первой странице равно 10.
         self.assertEqual(len(response.context['page_obj']), 10)
 
     def test_second_page_contains_three_records(self):

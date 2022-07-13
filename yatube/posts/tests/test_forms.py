@@ -4,9 +4,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, override_settings, TestCase
 from django.urls import reverse
 
+from http import HTTPStatus
 import shutil
 import tempfile
-from http import HTTPStatus
 
 from posts.forms import PostForm
 from posts.models import Comment, Group, Post

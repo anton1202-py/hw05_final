@@ -6,9 +6,9 @@
 </title>
 {% endblock %}
 {% block content %}
-  {% include 'posts/includes/switcher.html' %}
   <!-- класс py-5 создает отступы сверху и снизу блока -->
 <div class="container py-5">
+  {% include 'posts/includes/switcher.html' %}
   <h1>Последние обновления на сайте</h1>
   {% include 'includes/post.html' %}
   {% for post in page_obj %}

@@ -284,8 +284,9 @@ class FollowTest(TestCase):
         """Залогиненный пользователь может подписаться на авторов,
         при этом нельзя подписаться, если он уже подписан"""
         follow_count = Follow.objects.count()
-        self.user.get(self.PROFILE_FOLLOW_AUTHOR)
-        self.user.get(self.PROFILE_FOLLOW_AUTHOR)
+        for i in range(2):
+            i = self.PROFILE_FOLLOW_AUTHOR
+            self.user.get(i)
         self.assertEqual(Follow.objects.count(), follow_count + 1)
 
     def test_authenticated_user_can_unfollow(self):
@@ -293,8 +294,9 @@ class FollowTest(TestCase):
         при этом нельзя отписаться, если он уже отписан"""
         follow_count = Follow.objects.count()
         self.user.get(self.PROFILE_FOLLOW_AUTHOR)
-        self.user.get(self.PROFILE_UNFOLLOW_AUTHOR)
-        self.user.get(self.PROFILE_UNFOLLOW_AUTHOR)
+        for i in range(2):
+            i = self.PROFILE_UNFOLLOW_AUTHOR
+            self.user.get(i)
         self.assertEqual(Follow.objects.count(), follow_count)
 
     def test_authenticated_user_canе_follow_himself(self):

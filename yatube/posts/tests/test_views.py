@@ -280,44 +280,64 @@ class FollowTest(TestCase):
         self.user.force_login(self.user_user)
         self.author.force_login(self.user_author)
 
+    def body_test(self, first_object, post):
+        """Проверка полей поста."""
+        self.assertEqual(first_object.text, post.text)
+        self.assertEqual(first_object.author, self.user_author)
+
     def test_authenticated_user_can_follow(self):
         """Залогиненный пользователь может подписаться на авторов,
         при этом нельзя подписаться, если он уже подписан"""
         follow_count = Follow.objects.count()
-        for i in range(2):
-            i = self.PROFILE_FOLLOW_AUTHOR
-            self.user.get(i)
-        self.assertEqual(Follow.objects.count(), follow_count + 1)
+        self.user.get(self.PROFILE_FOLLOW_AUTHOR)
+        follow_count_after_subc = Follow.objects.count()
+        self.assertEqual(follow_count_after_subc, follow_count + 1)
+        self.user.get(reverse(
+            'posts:profile_follow',
+            args={self.user_author.username}))
+        self.assertEqual(Follow.objects.count(), follow_count_after_subc)
 
     def test_authenticated_user_can_unfollow(self):
         """Залогиненный пользователь может отписаться от авторов,
         при этом нельзя отписаться, если он уже отписан"""
         follow_count = Follow.objects.count()
         self.user.get(self.PROFILE_FOLLOW_AUTHOR)
-        for i in range(2):
-            i = self.PROFILE_UNFOLLOW_AUTHOR
-            self.user.get(i)
-        self.assertEqual(Follow.objects.count(), follow_count)
+        self.user.get(self.PROFILE_UNFOLLOW_AUTHOR)
+        follow_count_after_unsubc = Follow.objects.count()
+        self.assertEqual(follow_count_after_unsubc, follow_count)
+        self.user.get(self.PROFILE_UNFOLLOW_AUTHOR)
+        self.assertEqual(Follow.objects.count(), follow_count_after_unsubc)
 
-    def test_authenticated_user_canе_follow_himself(self):
+    def test_authenticated_user_can_follow_himself(self):
         """Залогиненный пользователь не может подписаться на самого себя"""
         follow_count = Follow.objects.count()
         self.user.get(self.PROFILE_FOLLOW_USER)
         self.assertEqual(Follow.objects.count(), follow_count)
 
+    def test_subscribed_right_author(self):
+        """ПРоверяем, что подписались на того автора, когорого хотели"""
+        self.user.get(self.FOLLOW_INDEX)
+        self.assertEqual(Post.objects.count(), 0)
+        self.user.get(self.PROFILE_FOLLOW_AUTHOR)
+        post = Post.objects.create(
+            text='Тестовый пост подписки',
+            author=self.user_author
+        )
+        response = self.user.get(self.FOLLOW_INDEX)
+        first_object = response.context['page_obj'].object_list[0]
+        self.body_test(first_object, post)
+
     def test_profile_follow(self):
         """Проверяем, что пост возникает на странице подписки."""
-        Post.objects.create(
+        post = Post.objects.create(
             text='Тестовый пост подписки',
             author=self.user_author
         )
         Follow.objects.create(user=self.user_user, author=self.user_author)
         self.user.get(self.PROFILE_FOLLOW_USER)
         response = self.user.get(self.FOLLOW_INDEX)
-        self.assertEqual(
-            response.context['page_obj'].object_list[0],
-            Post.objects.latest('id')
-        )
+        first_object = response.context['page_obj'].object_list[0]
+        self.body_test(first_object, post)
 
 
 class PaginatorViewsTest(TestCase):

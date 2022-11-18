@@ -1,3 +1,23 @@
 # hw05_final
 
-[![CI](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml)
+## **Задание проекта:**
+1. С помощью sorl-thumbnail вывести иллюстрации к постам.
+2. Создать система комментариев к постам
+3. Кеширование главной страницы
+4. Создать кастомные страницы для ошибок: 
+    - 404 page_not_found
+    - 403 permission_denied_view
+5. Создать модель **Follow** с полями **user** и **author**
+6. Напишите тесты, проверяющие работу нового сервиса.
+
+## Установка проекта
+
+Чтобы развернуть проект локально, нужно:
+
+1.  Клонировать его с репозитория.
+2.  Установить виртуальное окружение. (python -m venv venv)
+3.  Активировать виртуальное окружение. (. venv/scripts/activate)
+4.  Установить зависимости (pip install -r requirements.txt)
+5.  Сделать миграции(python manage.py migrate)
+    
+
